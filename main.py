@@ -2,6 +2,8 @@
 # Sorting visualiser: Heap Sort
 
 # Imports
+import re
+
 import pygame
 import random
 import time
@@ -28,21 +30,32 @@ pygame.display.set_caption(
 # Boolean variable to run
 # the program in while loop
 run = True
+main_page = True
 
 # Window size and some initials
 width = 1000
 length = 600
 array = [0] * 151
-arr_clr = [(0, 204, 102)] * 151
+arr_clr = [(0, 204, 120)] * 151
 clr_ind = 0
-clr = [(0, 204, 102), (255, 0, 0),
-       (0, 0, 153), (255, 102, 0)]
+clr = [(0, 204, 120), (150, 5, 150),
+       (0, 0, 153), (255, 120, 0)]
 fnt = pygame.font.SysFont("comicsans", 30)
 fnt1 = pygame.font.SysFont("comicsans", 20)
 
+numbers = [
+    pygame.K_SPACE,
+    pygame.K_0, pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4,
+    pygame.K_5, pygame.K_6, pygame.K_7, pygame.K_8, pygame.K_9,
+]
+
 user_text = ''
 
-input_rect = pygame.Rect(480, 55, 500, 22)
+input_rect = pygame.Rect(20, 80, 950, 22)
+
+program_rect = pygame.Rect(20, 105, 450, 200)
+me_rect = pygame.Rect(520, 105, 450, 200)
+
 color = pygame.Color('black')
 
 
@@ -103,28 +116,29 @@ def heapify(array, root, size):
 # Function to Draw the array values
 def draw():
     # Text should be rendered
-    txt = fnt.render("SORT: PRESS 'ENTER'",
+    txt = fnt.render("Сортування: Нажміть 'ENTER'",
                      1, (0, 0, 0))
     # Position where text is placed
     screen.blit(txt, (20, 20))
-    txt1 = fnt.render("GENERATE NEW RANDOM ARRAY: PRESS 'R'",
+    txt1 = fnt.render("Створити новий масив: Нажміть 'R'",
                       1, (0, 0, 0))
     screen.blit(txt1, (20, 40))
-    txt4 = fnt.render("INPUT ARRAY MANUALLY THROUGH A SPACE:",
+    txt4 = fnt.render("Введіть масив вручну через пробіл:",
                       1, (0, 0, 0))
     screen.blit(txt4, (20, 60))
-    txt2 = fnt1.render("ALGORITHM USED:" +
-                       "HEAP SORT", 1, (0, 0, 0))
-    screen.blit(txt2, (700, 40))
-    text3 = fnt1.render("Running Time(sec): " +
+    txt2 = fnt.render("Довідка про розробника: Нажміть 'D'", 1, (0, 0, 0))
+    screen.blit(txt2, (20, 110))
+    text3 = fnt1.render("Тривалість(секунди): " +
                         str(int(time.time() - startTime)),
                         1, (0, 0, 0))
     screen.blit(text3, (700, 20))
+    txt5 = fnt1.render("Алгоритм: HEAP SORT", 1, (0, 0, 0))
+    screen.blit(txt5, (700, 40))
     element_width = (width - 150) // 150
     boundry_arr = 1000 / 150
     boundry_grp = 550 / 100
-    pygame.draw.line(screen, (0, 0, 0), (0, 95),
-                     (1000, 95), 6)
+    pygame.draw.line(screen, (0, 0, 0), (0, 130),
+                     (1000, 130), 6)
 
     text_surface = fnt.render(user_text, True, (0, 0, 0))
     pygame.draw.rect(screen, color, input_rect, 2)
@@ -134,14 +148,57 @@ def draw():
     for i in range(1, 151):
         if len(array) > i:
             pygame.draw.line(screen, arr_clr[i],
-                             (boundry_arr * i - 3, 100),
-                             (boundry_arr * i - 3,
-                              array[i] * boundry_grp + 100),
+                             (boundry_arr * i - 3, 137),
+                             (boundry_arr * i - 3, array[i] * boundry_grp + 137),
                              element_width)
 
 
-def convertToInt(n):
+def draw_info():
+    # Text should be rendered
+    txt = fnt.render("Про мене", 1, (0, 0, 0))
+    # Position where text is placed
+    screen.blit(txt, (460, 20))
+
+    txt2 = fnt.render("Головне меню: Нажміть 'S'", 1, (0, 0, 0))
+    screen.blit(txt2, (20, 50))
+
+    pygame.draw.line(screen, (0, 0, 0), (0, 95), (1000, 95), 6)
+
+    program_text = 'Програма розроблена в PyCharm на мові \nпрограмування Python за допомогою \nбібліотеки Pygame'
+    blit_text(screen,program_text, (30,120), fnt)
+    pygame.draw.rect(screen, color, program_rect, 2)
+
+    me_text = 'Розробник: Корнієнко Ромам Сергійович \nСтудент 472 групи \nПроект розроблений для курсової\nроботи'
+    blit_text(screen, me_text, (530, 120), fnt)
+    pygame.draw.rect(screen, color, me_rect, 2)
+
+
+def blit_text(surface, text, pos, font, color=pygame.Color('black')):
+    words = [word.split(' ') for word in text.splitlines()]  # 2D array where each row is a list of words.
+    space = font.size(' ')[0]  # The width of a space.
+    max_width, max_height = surface.get_size()
+    x, y = pos
+    for line in words:
+        for word in line:
+            word_surface = font.render(word, 0, color)
+            word_width, word_height = word_surface.get_size()
+            if x + word_width >= max_width:
+                x = pos[0]  # Reset the x.
+                y += word_height  # Start on new row.
+            surface.blit(word_surface, (x, y))
+            x += word_width + space
+        x = pos[0]  # Reset the x.
+        y += word_height  # Start on new row.
+
+
+def convert_to_int(n):
     return int(n)
+
+
+def validate(text):
+    # text_after = re.sub(regex_search_term, regex_replacement, text_before
+    new_text = text.strip()
+    return re.sub(r' +', ' ', new_text).split(' ')
 
 
 # Program should be run
@@ -157,20 +214,28 @@ while run:
         if event.type == pygame.QUIT:
             run = False
         if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_s:
+                main_page = True
+                pygame.display.update()
+            if event.key == pygame.K_d:
+                main_page = False
+                pygame.display.update()
             if event.key == pygame.K_r:
                 generate_arr()
-            if event.key == pygame.K_RETURN:
+            if event.key == pygame.K_RETURN and event.key != pygame.K_r:
                 if len(user_text):
-                    array = np.fromiter(map(convertToInt, user_text.split(' ')), int)
+                    array = np.fromiter(map(convert_to_int, validate(user_text)), int)
                     draw()
                     pygame.display.update()
-                    time.sleep(6)
+                    time.sleep(3)
                 heapSort(array)
             if event.key == pygame.K_BACKSPACE:
                 user_text = user_text[:-1]
+            if numbers.count(event.key) == 0:
+                break
             else:
                 user_text += event.unicode
-    draw()
+    draw() if main_page else draw_info()
     pygame.display.update()
 
 pygame.quit()
